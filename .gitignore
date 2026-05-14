@@ -3,7 +3,9 @@
 .intellijPlatform/
 .kotlin/
 build/
+**/build/
 out/
 *.iml
+**/*.iml
 Thumbs.db
 .DS_Store

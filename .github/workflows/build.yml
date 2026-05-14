@@ -36,10 +36,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: mybatis-sql-capture
-          path: build/distributions/*.zip
+          path: mybatis-sql-capture/build/distributions/*.zip
 
       - name: Publish GitHub release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: build/distributions/*.zip
+          files: mybatis-sql-capture/build/distributions/*.zip
