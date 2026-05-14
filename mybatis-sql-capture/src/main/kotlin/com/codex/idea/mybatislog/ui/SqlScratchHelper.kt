@@ -1,12 +1,10 @@
 package com.codex.idea.mybatislog.ui
 
-import com.intellij.ide.DataManager
 import com.intellij.ide.scratch.ScratchFileService
 import com.intellij.ide.scratch.ScratchRootType
 import com.intellij.lang.Language
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
-import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
@@ -35,22 +33,11 @@ object SqlScratchHelper {
     }
 
     private fun runInEditor(editor: Editor): Boolean {
-        val dataContext = DataManager.getInstance().getDataContext(editor.component)
         val actionManager = ActionManager.getInstance()
 
         return runActionIds.any { actionId ->
             val action = actionManager.getAction(actionId) ?: return@any false
-            val event = com.intellij.openapi.actionSystem.AnActionEvent.createFromAnAction(
-                action,
-                null,
-                ActionPlaces.UNKNOWN,
-                dataContext,
-            )
-            if (!ActionUtil.performDumbAwareUpdate(action, event, false) || !event.presentation.isEnabled) {
-                return@any false
-            }
-            ActionUtil.invokeAction(action, dataContext, ActionPlaces.UNKNOWN, null, null)
-            true
+            actionManager.tryToExecute(action, null, editor.component, ActionPlaces.UNKNOWN, true).waitFor(500)
         }
     }
 }

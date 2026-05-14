@@ -9,6 +9,7 @@ An IntelliJ IDEA plugin that captures MyBatis SQL logs from run/debug sessions a
 - Dedicated `MyBatis SQL` tool window with history
 - CRUD-aware coloring for `SELECT`, `INSERT`, `UPDATE`, and `DELETE`
 - Copy, clear, and appearance controls directly in the `MyBatis SQL` panel
+- Right-click copy and `Ctrl+C` support for selected SQL entries
 - Custom SQL colors and SQL font size in `Settings > Tools > MyBatis SQL`
 - Manual fallback actions for restoring selected logs
 - Mapper XML / annotation SQL preview actions
@@ -78,14 +79,15 @@ mybatis-sql-capture/build/distributions/
 
 ## Compatibility
 
-- IntelliJ IDEA 2024.2
-- Build range: `242` to `242.*`
+- IntelliJ IDEA 2022.1 to 2025.3
+- Build range: `221` to `253.*`
+- Verified with IntelliJ Plugin Verifier across representative IDEA Community / Ultimate releases in that range
 
-## GitHub Release
+## Artifact
 
-Current packaged artifact:
+Latest local build artifact name:
 
-- `mybatis-sql-capture-0.2.2.zip`
+- `mybatis-sql-capture-0.3.0.zip`
 
 ## Marketplace
 

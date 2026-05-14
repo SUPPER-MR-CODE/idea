@@ -1,62 +1,88 @@
-import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "2.1.20"
-    id("org.jetbrains.intellij.platform") version "2.16.0"
+    id("org.jetbrains.intellij") version "1.17.4"
 }
 
 group = "io.github.suppermrcode"
-version = "0.2.2"
+version = "0.3.0"
 
 repositories {
     mavenCentral()
-    intellijPlatform {
-        defaultRepositories()
-    }
+}
+
+intellij {
+    version.set("2022.1.4")
+    type.set("IC")
+    plugins.set(listOf("com.intellij.java"))
 }
 
 dependencies {
-    intellijPlatform {
-        intellijIdeaCommunity("2024.2")
-        bundledPlugin("com.intellij.java")
-        testFramework(TestFrameworkType.Platform)
-    }
-
     testImplementation("junit:junit:4.13.2")
 }
 
-kotlin {
+tasks.withType<KotlinCompile>().configureEach {
     compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_17)
+        jvmTarget.set(JvmTarget.JVM_11)
+        languageVersion.set(KotlinVersion.KOTLIN_1_6)
+        apiVersion.set(KotlinVersion.KOTLIN_1_6)
     }
 }
 
-intellijPlatform {
-    pluginConfiguration {
-        name = "MyBatis SQL Capture"
-        ideaVersion {
-            sinceBuild = "242"
-            untilBuild = "242.*"
-        }
-        description = """
-            <p>Capture MyBatis SQL logs from IntelliJ IDEA run/debug sessions and restore them into formatted executable SQL automatically.</p>
-            <ul>
-              <li>Background capture of MyBatis <code>Preparing</code> and <code>Parameters</code> logs</li>
-              <li>Dedicated <b>MyBatis SQL</b> tool window with SQL history</li>
-              <li>Automatic SQL formatting</li>
-              <li>CRUD-aware colors for <code>SELECT</code>, <code>INSERT</code>, <code>UPDATE</code>, and <code>DELETE</code></li>
-              <li>Custom SQL colors in Settings</li>
-              <li>Manual restore and mapper SQL preview actions when needed</li>
-            </ul>
-        """.trimIndent()
-        changeNotes = """
-            <ul>
-              <li>Added automatic background capture for MyBatis SQL logs from run/debug processes.</li>
-              <li>Added the <b>MyBatis SQL</b> history tool window with formatted SQL output.</li>
-              <li>Added CRUD color highlighting and customizable SQL colors in Settings.</li>
-              <li>Kept manual restore and mapper preview actions as secondary workflows.</li>
-            </ul>
-        """.trimIndent()
+tasks.withType<JavaCompile>().configureEach {
+    sourceCompatibility = "11"
+    targetCompatibility = "11"
+}
+
+tasks {
+    patchPluginXml {
+        sinceBuild.set("221")
+        untilBuild.set("253.*")
+        pluginDescription.set(
+            """
+                <p>Capture MyBatis SQL logs from IntelliJ IDEA run/debug sessions and restore them into formatted executable SQL automatically.</p>
+                <ul>
+                  <li>Background capture of MyBatis <code>Preparing</code> and <code>Parameters</code> logs</li>
+                  <li>Dedicated <b>MyBatis SQL</b> tool window with SQL history</li>
+                  <li>Automatic SQL formatting</li>
+                  <li>CRUD-aware colors for <code>SELECT</code>, <code>INSERT</code>, <code>UPDATE</code>, and <code>DELETE</code></li>
+                  <li>Custom SQL colors and SQL font size in Settings</li>
+                  <li>Panel actions for copying, clearing history, and opening appearance settings</li>
+                  <li>Manual restore and mapper SQL preview actions when needed</li>
+                </ul>
+            """.trimIndent(),
+        )
+        changeNotes.set(
+            """
+                <ul>
+                  <li>Expanded compatibility from IntelliJ IDEA 2022.1 through 2025.3.</li>
+                  <li>Added clearer MyBatis SQL panel controls with copy, clear, and appearance actions.</li>
+                  <li>Added right-click copy and <code>Ctrl+C</code> support for selected SQL history entries.</li>
+                  <li>Added configurable SQL font size alongside CRUD color customization.</li>
+                </ul>
+            """.trimIndent(),
+        )
+    }
+
+    runPluginVerifier {
+        ideVersions.set(
+            listOf(
+                "IC-2022.1.4",
+                "IC-222.4554.5",
+                "IC-223.8836.26",
+                "IC-2023.1.7",
+                "IC-2023.2.8",
+                "IC-2023.3.8",
+                "IC-2024.1.7",
+                "IC-2024.2.6",
+                "IC-2024.3.7",
+                "IC-2025.1.7",
+                "IC-2025.2.6",
+                "IC-2025.3",
+            ),
+        )
     }
 }

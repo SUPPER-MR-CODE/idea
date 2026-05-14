@@ -1,9 +1,9 @@
 package com.codex.idea.mybatislog.service
 
 import com.codex.idea.mybatislog.core.MyBatisLiveLogAssembler
-import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessHandler
+import com.intellij.execution.process.ProcessListener
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
@@ -33,7 +33,9 @@ class MyBatisProcessCaptureService(
         )
         sessions[handler] = session
 
-        handler.addProcessListener(object : ProcessAdapter() {
+        handler.addProcessListener(object : ProcessListener {
+            override fun startNotified(event: ProcessEvent) = Unit
+
             override fun onTextAvailable(event: ProcessEvent, outputType: com.intellij.openapi.util.Key<*>) {
                 session.acceptChunk(event.text)
             }
