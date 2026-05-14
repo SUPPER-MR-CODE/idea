@@ -1,0 +1,47 @@
+<idea-plugin>
+    <id>io.github.suppermrcode.mybatis.sql.capture</id>
+    <name>MyBatis SQL Capture</name>
+    <vendor url="https://github.com/SUPPER-MR-CODE">SUPPER-MR-CODE</vendor>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.xml</depends>
+    <depends>com.intellij.java</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow
+                id="MyBatis SQL"
+                anchor="bottom"
+                canCloseContents="false"
+                factoryClass="com.codex.idea.mybatislog.ui.MyBatisSqlToolWindowFactory"/>
+        <applicationConfigurable
+                parentId="tools"
+                id="com.codex.idea.mybatislog.settings"
+                displayName="MyBatis SQL"
+                instance="com.codex.idea.mybatislog.ui.MyBatisSqlColorSettingsConfigurable"/>
+    </extensions>
+
+    <projectListeners>
+        <listener
+                class="com.codex.idea.mybatislog.service.MyBatisExecutionListener"
+                topic="com.intellij.execution.ExecutionListener"/>
+    </projectListeners>
+
+    <actions>
+        <action
+                id="com.codex.idea.mybatislog.action.ConvertMyBatisLogAction"
+                class="com.codex.idea.mybatislog.action.ConvertMyBatisLogAction"
+                text="Restore MyBatis SQL"
+                description="Restore executable SQL from selected MyBatis log text">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+            <add-to-group group-id="ConsoleEditorPopupMenu" anchor="last"/>
+        </action>
+        <action
+                id="com.codex.idea.mybatislog.action.PreviewExecutableSqlAction"
+                class="com.codex.idea.mybatislog.action.PreviewExecutableSqlAction"
+                text="Preview Executable SQL"
+                description="Preview executable SQL from the current MyBatis mapper XML or annotation">
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+        </action>
+    </actions>
+</idea-plugin>
