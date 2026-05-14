@@ -1,36 +1,60 @@
 # MyBatis SQL Capture
 
-An IntelliJ IDEA plugin project that captures MyBatis log output from IntelliJ IDEA run/debug sessions and restores it into formatted executable SQL.
+An IntelliJ IDEA plugin that captures MyBatis SQL logs from run/debug sessions and restores them into formatted executable SQL automatically.
 
-## MVP Scope
+## Features
 
-- Console/editor selection to SQL restore
-- Mapper XML / annotation preview for executable SQL
-- Dialog-based flow with `Copy`, `Open in SQL Scratch`, and best-effort `Run`
-- Editor/Tools menu action: `Restore MyBatis SQL`
-- Editor popup action: `Preview Executable SQL`
-- Multi-statement parsing
-- String, numeric, boolean, and null parameter handling
+- Background capture of MyBatis `Preparing` and `Parameters` logs
+- Automatic SQL restore and formatting
+- Dedicated `MyBatis SQL` tool window with history
+- CRUD-aware coloring for `SELECT`, `INSERT`, `UPDATE`, and `DELETE`
+- Custom SQL colors in `Settings > Tools > MyBatis SQL`
+- Manual fallback actions for restoring selected logs
+- Mapper XML / annotation SQL preview actions
 
-## Supported Log Pattern
+## Example
+
+Input log:
 
 ```text
 ==>  Preparing: SELECT * FROM user WHERE id = ? AND status = ?
 ==> Parameters: 42(Long), ACTIVE(String)
 ```
 
-Output:
+Captured result:
 
 ```sql
-SELECT * FROM user WHERE id = 42 AND status = 'ACTIVE';
+SELECT *
+FROM user
+WHERE id = 42
+AND status = 'ACTIVE';
 ```
 
-## Run
+## Usage
 
-On Windows:
+### Automatic capture
+
+1. Run your application from IntelliJ IDEA.
+2. Make sure MyBatis SQL logs are printed to the Run/Debug console.
+3. The plugin captures matching log lines automatically.
+4. Open the `MyBatis SQL` tool window to view formatted SQL history.
+
+### Manual restore
+
+- Select MyBatis log text in an editor or console
+- Right-click `Restore MyBatis SQL`
+
+### Mapper preview
+
+- Place the caret inside a mapper XML statement or MyBatis annotation
+- Right-click `Preview Executable SQL`
+
+## Build
+
+Run tests:
 
 ```powershell
-.\gradlew.bat runIde
+.\gradlew.bat test
 ```
 
 Build the plugin ZIP:
@@ -39,19 +63,32 @@ Build the plugin ZIP:
 .\gradlew.bat buildPlugin
 ```
 
-## JetBrains Marketplace
-
-The current build artifact for manual upload is generated in:
+The packaged plugin is generated under:
 
 ```text
 build/distributions/
 ```
 
-For the first Marketplace release, JetBrains requires a manual upload in the Marketplace UI.
-After the plugin exists in Marketplace, later versions can be published through Gradle with a personal access token.
+## Compatibility
 
-## Usage
+- IntelliJ IDEA 2024.2
+- Build range: `242` to `242.*`
 
-- In an editor or console, select MyBatis log text and right-click `Restore MyBatis SQL`
-- Or use `Tools > Restore MyBatis SQL` and paste the log into the dialog
-- In mapper XML or `@Select/@Update/@Insert/@Delete` annotations, right-click `Preview Executable SQL`
+## GitHub Release
+
+Current packaged artifact:
+
+- `mybatis-sql-capture-0.2.2.zip`
+
+## Marketplace
+
+For the first Marketplace release, upload the ZIP manually in the JetBrains Marketplace UI.
+
+Official docs:
+
+- [Publishing a Plugin](https://plugins.jetbrains.com/docs/intellij/publishing-plugin.html)
+- [Plugin Configuration File](https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html)
+
+## License
+
+[MIT](LICENSE)
