@@ -17,6 +17,7 @@ class MyBatisSqlColorSettingsService : PersistentStateComponent<MyBatisSqlColorS
         var insertColorHex: String = "#EF6C00",
         var updateColorHex: String = "#1565C0",
         var deleteColorHex: String = "#C62828",
+        var sqlFontSize: Int = 13,
     )
 
     interface Listener {
@@ -56,6 +57,20 @@ class MyBatisSqlColorSettingsService : PersistentStateComponent<MyBatisSqlColorS
             insertColorHex = toHex(insert),
             updateColorHex = toHex(update),
             deleteColorHex = toHex(delete),
+            sqlFontSize = state.sqlFontSize,
+        )
+        ApplicationManager.getApplication().messageBus.syncPublisher(TOPIC).settingsChanged()
+    }
+
+    fun sqlFontSize(): Int = state.sqlFontSize.coerceIn(10, 28)
+
+    fun updateAppearance(select: Color, insert: Color, update: Color, delete: Color, sqlFontSize: Int) {
+        state = State(
+            selectColorHex = toHex(select),
+            insertColorHex = toHex(insert),
+            updateColorHex = toHex(update),
+            deleteColorHex = toHex(delete),
+            sqlFontSize = sqlFontSize.coerceIn(10, 28),
         )
         ApplicationManager.getApplication().messageBus.syncPublisher(TOPIC).settingsChanged()
     }

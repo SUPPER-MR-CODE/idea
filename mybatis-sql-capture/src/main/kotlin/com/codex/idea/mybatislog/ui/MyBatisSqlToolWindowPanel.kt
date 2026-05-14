@@ -1,13 +1,12 @@
 package com.codex.idea.mybatislog.ui
 
+import com.intellij.icons.AllIcons
 import com.codex.idea.mybatislog.service.MyBatisSqlColorSettingsService
 import com.codex.idea.mybatislog.service.MyBatisSqlHistoryEntry
 import com.codex.idea.mybatislog.service.MyBatisSqlHistoryService
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.ide.CopyPasteManager
+import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.ui.SimpleToolWindowPanel
 import com.intellij.openapi.project.Project
 import com.intellij.ui.ScrollPaneFactory
@@ -19,14 +18,18 @@ import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
 import java.awt.Font
+import java.awt.FlowLayout
 import java.awt.datatransfer.StringSelection
 import java.time.format.DateTimeFormatter
-import javax.swing.AbstractAction
 import javax.swing.BorderFactory
 import javax.swing.DefaultListModel
+import javax.swing.Icon
+import javax.swing.JButton
 import javax.swing.JComponent
+import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.ListCellRenderer
+import javax.swing.ListSelectionModel
 
 class MyBatisSqlToolWindowPanel(
     private val project: Project,
@@ -36,18 +39,28 @@ class MyBatisSqlToolWindowPanel(
     private val list = JBList(listModel).apply {
         cellRenderer = SqlHistoryCellRenderer()
         fixedCellHeight = -1
+        selectionMode = ListSelectionModel.MULTIPLE_INTERVAL_SELECTION
+        emptyText.text = "Captured MyBatis SQL will appear here."
+    }
+    private val copyButton = createToolbarButton("Copy SQL", AllIcons.Actions.Copy) { copySelected() }
+    private val clearButton = createToolbarButton("Clear History", AllIcons.Actions.GC) { historyService.clear() }
+    private val appearanceButton = createToolbarButton("Colors & Font", AllIcons.General.Settings) {
+        ShowSettingsUtil.getInstance().showSettingsDialog(project, MyBatisSqlColorSettingsConfigurable::class.java)
     }
 
     private val historyListener: (List<MyBatisSqlHistoryEntry>) -> Unit = { entries ->
         listModel.removeAllElements()
         entries.forEach(listModel::addElement)
+        updateToolbarState()
     }
 
     init {
         setContent(ScrollPaneFactory.createScrollPane(list))
         setToolbar(createToolbar())
+        updateToolbarState()
 
         historyService.addListener(historyListener)
+        list.addListSelectionListener { updateToolbarState() }
 
         val busConnection = project.messageBus.connect(this)
         busConnection.subscribe(MyBatisSqlColorSettingsService.TOPIC, object : MyBatisSqlColorSettingsService.Listener {
@@ -58,28 +71,12 @@ class MyBatisSqlToolWindowPanel(
     }
 
     private fun createToolbar(): JComponent {
-        val panel = JPanel(BorderLayout())
-        val actions = DefaultActionGroup().apply {
-            add(object : AnAction("Copy Selected SQL") {
-                override fun actionPerformed(event: com.intellij.openapi.actionSystem.AnActionEvent) {
-                    copySelected()
-                }
-            })
-            add(object : AnAction("Clear History") {
-                override fun actionPerformed(event: com.intellij.openapi.actionSystem.AnActionEvent) {
-                    historyService.clear()
-                }
-            })
+        return JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(8), 0)).apply {
+            border = JBUI.Borders.empty(4, 8)
+            add(copyButton)
+            add(clearButton)
+            add(appearanceButton)
         }
-
-        val toolbar = ActionManager.getInstance().createActionToolbar(
-            "MyBatisSqlToolWindow",
-            actions,
-            true,
-        )
-        toolbar.targetComponent = this
-        panel.add(toolbar.component, BorderLayout.CENTER)
-        return panel
     }
 
     private fun copySelected() {
@@ -91,6 +88,19 @@ class MyBatisSqlToolWindowPanel(
         CopyPasteManager.getInstance().setContents(StringSelection(text))
     }
 
+    private fun updateToolbarState() {
+        copyButton.isEnabled = list.selectedIndices.isNotEmpty()
+        clearButton.isEnabled = !listModel.isEmpty
+    }
+
+    private fun createToolbarButton(text: String, icon: Icon, onClick: () -> Unit): JButton {
+        return JButton(text, icon).apply {
+            isFocusable = false
+            margin = JBUI.insets(6, 10)
+            addActionListener { onClick() }
+        }
+    }
+
     override fun dispose() {
         historyService.removeListener(historyListener)
     }
@@ -99,7 +109,7 @@ class MyBatisSqlToolWindowPanel(
         private val timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss")
 
         override fun getListCellRendererComponent(
-            list: javax.swing.JList<out MyBatisSqlHistoryEntry>,
+            list: JList<out MyBatisSqlHistoryEntry>,
             value: MyBatisSqlHistoryEntry,
             index: Int,
             isSelected: Boolean,
@@ -107,6 +117,7 @@ class MyBatisSqlToolWindowPanel(
         ): Component {
             val settings = MyBatisSqlColorSettingsService.getInstance()
             val operationColor = settings.colorFor(value.operation)
+            val sqlFontSize = settings.sqlFontSize()
 
             val badge = JBLabel(value.operation.displayName).apply {
                 foreground = operationColor
@@ -130,7 +141,7 @@ class MyBatisSqlToolWindowPanel(
                 isEditable = false
                 lineWrap = true
                 wrapStyleWord = true
-                font = Font(Font.MONOSPACED, Font.PLAIN, list.font.size)
+                font = Font(Font.MONOSPACED, Font.PLAIN, sqlFontSize)
                 foreground = operationColor
                 background = if (isSelected) list.selectionBackground else list.background
                 border = JBUI.Borders.emptyTop(6)
@@ -139,8 +150,11 @@ class MyBatisSqlToolWindowPanel(
             val root = JPanel(BorderLayout()).apply {
                 background = if (isSelected) list.selectionBackground else list.background
                 border = BorderFactory.createCompoundBorder(
-                    BorderFactory.createMatteBorder(0, 0, 1, 0, JBUI.CurrentTheme.CustomFrameDecorations.separatorForeground()),
-                    JBUI.Borders.empty(8),
+                    BorderFactory.createCompoundBorder(
+                        BorderFactory.createMatteBorder(0, 4, 1, 0, operationColor),
+                        BorderFactory.createMatteBorder(0, 0, 1, 0, JBUI.CurrentTheme.CustomFrameDecorations.separatorForeground()),
+                    ),
+                    JBUI.Borders.empty(8, 10),
                 )
                 add(top, BorderLayout.NORTH)
                 add(sqlArea, BorderLayout.CENTER)

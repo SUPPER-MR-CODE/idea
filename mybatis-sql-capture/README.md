@@ -8,7 +8,8 @@ An IntelliJ IDEA plugin that captures MyBatis SQL logs from run/debug sessions a
 - Automatic SQL restore and formatting
 - Dedicated `MyBatis SQL` tool window with history
 - CRUD-aware coloring for `SELECT`, `INSERT`, `UPDATE`, and `DELETE`
-- Custom SQL colors in `Settings > Tools > MyBatis SQL`
+- Copy, clear, and appearance controls directly in the `MyBatis SQL` panel
+- Custom SQL colors and SQL font size in `Settings > Tools > MyBatis SQL`
 - Manual fallback actions for restoring selected logs
 - Mapper XML / annotation SQL preview actions
 
