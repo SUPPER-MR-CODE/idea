@@ -20,6 +20,10 @@ import java.awt.Component
 import java.awt.Font
 import java.awt.FlowLayout
 import java.awt.datatransfer.StringSelection
+import java.awt.event.InputEvent
+import java.awt.event.KeyEvent
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import java.time.format.DateTimeFormatter
 import javax.swing.BorderFactory
 import javax.swing.DefaultListModel
@@ -27,7 +31,10 @@ import javax.swing.Icon
 import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JList
+import javax.swing.JMenuItem
 import javax.swing.JPanel
+import javax.swing.JPopupMenu
+import javax.swing.KeyStroke
 import javax.swing.ListCellRenderer
 import javax.swing.ListSelectionModel
 
@@ -47,6 +54,13 @@ class MyBatisSqlToolWindowPanel(
     private val appearanceButton = createToolbarButton("Colors & Font", AllIcons.General.Settings) {
         ShowSettingsUtil.getInstance().showSettingsDialog(project, MyBatisSqlColorSettingsConfigurable::class.java)
     }
+    private val copyPopupMenu = JPopupMenu().apply {
+        add(
+            JMenuItem("Copy SQL", AllIcons.Actions.Copy).apply {
+                addActionListener { copySelected() }
+            },
+        )
+    }
 
     private val historyListener: (List<MyBatisSqlHistoryEntry>) -> Unit = { entries ->
         listModel.removeAllElements()
@@ -61,6 +75,7 @@ class MyBatisSqlToolWindowPanel(
 
         historyService.addListener(historyListener)
         list.addListSelectionListener { updateToolbarState() }
+        installCopyInteractions()
 
         val busConnection = project.messageBus.connect(this)
         busConnection.subscribe(MyBatisSqlColorSettingsService.TOPIC, object : MyBatisSqlColorSettingsService.Listener {
@@ -86,6 +101,44 @@ class MyBatisSqlToolWindowPanel(
         }
         val text = selected.joinToString(separator = "\n\n") { it.sql }
         CopyPasteManager.getInstance().setContents(StringSelection(text))
+    }
+
+    private fun installCopyInteractions() {
+        list.inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK), "copySelectedSql")
+        list.actionMap.put(
+            "copySelectedSql",
+            object : javax.swing.AbstractAction() {
+                override fun actionPerformed(event: java.awt.event.ActionEvent?) {
+                    copySelected()
+                }
+            },
+        )
+        list.addMouseListener(
+            object : MouseAdapter() {
+                override fun mousePressed(event: MouseEvent) = maybeShowPopup(event)
+
+                override fun mouseReleased(event: MouseEvent) = maybeShowPopup(event)
+
+                private fun maybeShowPopup(event: MouseEvent) {
+                    if (!event.isPopupTrigger) {
+                        return
+                    }
+                    val index = list.locationToIndex(event.point)
+                    if (index < 0) {
+                        return
+                    }
+                    val bounds = list.getCellBounds(index, index) ?: return
+                    if (!bounds.contains(event.point)) {
+                        return
+                    }
+                    if (!list.isSelectedIndex(index)) {
+                        list.setSelectedIndex(index)
+                    }
+                    updateToolbarState()
+                    copyPopupMenu.show(event.component, event.x, event.y)
+                }
+            },
+        )
     }
 
     private fun updateToolbarState() {
