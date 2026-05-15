@@ -37,10 +37,11 @@ import javax.swing.JPopupMenu
 import javax.swing.KeyStroke
 import javax.swing.ListCellRenderer
 import javax.swing.ListSelectionModel
+import javax.swing.SwingConstants
 
 class MyBatisSqlToolWindowPanel(
     private val project: Project,
-) : SimpleToolWindowPanel(true, true), Disposable {
+) : SimpleToolWindowPanel(false, true), Disposable {
     private val historyService = project.getService(MyBatisSqlHistoryService::class.java)
     private val listModel = DefaultListModel<MyBatisSqlHistoryEntry>()
     private val list = JBList(listModel).apply {
@@ -150,6 +151,10 @@ class MyBatisSqlToolWindowPanel(
         return JButton(text, icon).apply {
             isFocusable = false
             margin = JBUI.insets(6, 10)
+            iconTextGap = JBUI.scale(6)
+            horizontalAlignment = SwingConstants.LEFT
+            horizontalTextPosition = SwingConstants.RIGHT
+            verticalTextPosition = SwingConstants.CENTER
             addActionListener { onClick() }
         }
     }
@@ -171,6 +176,7 @@ class MyBatisSqlToolWindowPanel(
             val settings = MyBatisSqlColorSettingsService.getInstance()
             val operationColor = settings.colorFor(value.operation)
             val sqlFontSize = settings.sqlFontSize()
+            val sqlFontStyle = if (settings.isSqlFontBold()) Font.BOLD else Font.PLAIN
 
             val badge = JBLabel(value.operation.displayName).apply {
                 foreground = operationColor
@@ -194,7 +200,7 @@ class MyBatisSqlToolWindowPanel(
                 isEditable = false
                 lineWrap = true
                 wrapStyleWord = true
-                font = Font(Font.MONOSPACED, Font.PLAIN, sqlFontSize)
+                font = Font(Font.MONOSPACED, sqlFontStyle, sqlFontSize)
                 foreground = operationColor
                 background = if (isSelected) list.selectionBackground else list.background
                 border = JBUI.Borders.emptyTop(6)

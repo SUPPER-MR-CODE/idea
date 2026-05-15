@@ -4,6 +4,7 @@ import com.codex.idea.mybatislog.service.MyBatisSqlColorSettingsService
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.SearchableConfigurable
 import com.intellij.ui.ColorPanel
+import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.FormBuilder
 import javax.swing.JComponent
@@ -18,6 +19,7 @@ class MyBatisSqlColorSettingsConfigurable : SearchableConfigurable, Configurable
     private var updateColorPanel: ColorPanel? = null
     private var deleteColorPanel: ColorPanel? = null
     private var fontSizeSpinner: JSpinner? = null
+    private var fontBoldCheckBox: JBCheckBox? = null
 
     override fun getId(): String = "com.codex.idea.mybatislog.settings"
 
@@ -30,6 +32,7 @@ class MyBatisSqlColorSettingsConfigurable : SearchableConfigurable, Configurable
         updateColorPanel = ColorPanel()
         deleteColorPanel = ColorPanel()
         fontSizeSpinner = JSpinner(SpinnerNumberModel(settings.sqlFontSize(), 10, 28, 1))
+        fontBoldCheckBox = JBCheckBox("Use bold font for SQL content")
 
         panel = FormBuilder.createFormBuilder()
             .addComponent(
@@ -40,6 +43,7 @@ class MyBatisSqlColorSettingsConfigurable : SearchableConfigurable, Configurable
             .addLabeledComponent("UPDATE Color", updateColorPanel!!)
             .addLabeledComponent("DELETE Color", deleteColorPanel!!)
             .addLabeledComponent("SQL Font Size", fontSizeSpinner!!)
+            .addComponent(fontBoldCheckBox!!)
             .addComponentFillVertically(JPanel(), 0)
             .panel
 
@@ -53,7 +57,8 @@ class MyBatisSqlColorSettingsConfigurable : SearchableConfigurable, Configurable
             insertColorPanel?.selectedColor != settings.colorFor(com.codex.idea.mybatislog.core.SqlOperationKind.INSERT) ||
             updateColorPanel?.selectedColor != settings.colorFor(com.codex.idea.mybatislog.core.SqlOperationKind.UPDATE) ||
             deleteColorPanel?.selectedColor != settings.colorFor(com.codex.idea.mybatislog.core.SqlOperationKind.DELETE) ||
-            (fontSizeSpinner?.value as? Int) != settings.sqlFontSize()
+            (fontSizeSpinner?.value as? Int) != settings.sqlFontSize() ||
+            fontBoldCheckBox?.isSelected != settings.isSqlFontBold()
     }
 
     override fun apply() {
@@ -64,6 +69,7 @@ class MyBatisSqlColorSettingsConfigurable : SearchableConfigurable, Configurable
             update = updateColorPanel!!.selectedColor ?: MyBatisSqlColorSettingsService.getInstance().colorFor(com.codex.idea.mybatislog.core.SqlOperationKind.UPDATE),
             delete = deleteColorPanel!!.selectedColor ?: MyBatisSqlColorSettingsService.getInstance().colorFor(com.codex.idea.mybatislog.core.SqlOperationKind.DELETE),
             sqlFontSize = (fontSizeSpinner!!.value as Number).toInt(),
+            sqlFontBold = fontBoldCheckBox!!.isSelected,
         )
     }
 
@@ -74,6 +80,7 @@ class MyBatisSqlColorSettingsConfigurable : SearchableConfigurable, Configurable
         updateColorPanel?.selectedColor = settings.colorFor(com.codex.idea.mybatislog.core.SqlOperationKind.UPDATE)
         deleteColorPanel?.selectedColor = settings.colorFor(com.codex.idea.mybatislog.core.SqlOperationKind.DELETE)
         fontSizeSpinner?.value = settings.sqlFontSize()
+        fontBoldCheckBox?.isSelected = settings.isSqlFontBold()
     }
 
     override fun disposeUIResources() {
@@ -83,5 +90,6 @@ class MyBatisSqlColorSettingsConfigurable : SearchableConfigurable, Configurable
         updateColorPanel = null
         deleteColorPanel = null
         fontSizeSpinner = null
+        fontBoldCheckBox = null
     }
 }
