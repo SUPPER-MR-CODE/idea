@@ -1,6 +1,5 @@
 package com.codex.idea.mybatislog.ui
 
-import com.intellij.icons.AllIcons
 import com.codex.idea.mybatislog.service.MyBatisSqlColorSettingsService
 import com.codex.idea.mybatislog.service.MyBatisSqlHistoryEntry
 import com.codex.idea.mybatislog.service.MyBatisSqlHistoryService
@@ -28,7 +27,6 @@ import java.awt.event.MouseEvent
 import java.time.format.DateTimeFormatter
 import javax.swing.BorderFactory
 import javax.swing.DefaultListModel
-import javax.swing.Icon
 import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JList
@@ -50,14 +48,14 @@ class MyBatisSqlToolWindowPanel(
         selectionMode = ListSelectionModel.MULTIPLE_INTERVAL_SELECTION
         emptyText.text = "Captured MyBatis SQL will appear here."
     }
-    private val copyButton = createToolbarButton("Copy SQL", AllIcons.Actions.Copy) { copySelected() }
-    private val clearButton = createToolbarButton("Clear History", AllIcons.Actions.GC) { historyService.clear() }
-    private val appearanceButton = createToolbarButton("Colors & Font", AllIcons.General.Settings) {
+    private val copyButton = createToolbarButton("Copy SQL") { copySelected() }
+    private val clearButton = createToolbarButton("Clear History") { historyService.clear() }
+    private val appearanceButton = createToolbarButton("Colors & Font") {
         ShowSettingsUtil.getInstance().showSettingsDialog(project, MyBatisSqlColorSettingsConfigurable::class.java)
     }
     private val copyPopupMenu = JPopupMenu().apply {
         add(
-            JMenuItem("Copy SQL", AllIcons.Actions.Copy).apply {
+            JMenuItem("Copy SQL").apply {
                 addActionListener { copySelected() }
             },
         )
@@ -153,11 +151,14 @@ class MyBatisSqlToolWindowPanel(
         clearButton.isEnabled = !listModel.isEmpty
     }
 
-    private fun createToolbarButton(text: String, icon: Icon, onClick: () -> Unit): JButton {
-        return JButton(text, icon).apply {
+    private fun createToolbarButton(text: String, onClick: () -> Unit): JButton {
+        return JButton(text).apply {
             isFocusable = false
             margin = JBUI.insets(5, 8)
-            iconTextGap = JBUI.scale(3)
+            border = JBUI.Borders.empty(4, 6)
+            isBorderPainted = false
+            isContentAreaFilled = false
+            isOpaque = false
             addActionListener { onClick() }
         }
     }
