@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "io.github.suppermrcode"
-version = "0.3.1"
+version = "0.3.2"
 
 repositories {
     mavenCentral()
@@ -58,7 +58,8 @@ tasks {
         changeNotes.set(
             """
                 <ul>
-                  <li>Polished the MyBatis SQL panel toolbar layout to avoid icon and label overlap.</li>
+                  <li>Fixed the MyBatis SQL panel layout so the toolbar stays on top instead of side-by-side with SQL content.</li>
+                  <li>Tightened toolbar button spacing to keep icons and labels inside button bounds.</li>
                   <li>Added SQL bold font configuration in appearance settings.</li>
                   <li>Fixed SQL item layout for larger fonts so content is fully visible with better spacing.</li>
                 </ul>

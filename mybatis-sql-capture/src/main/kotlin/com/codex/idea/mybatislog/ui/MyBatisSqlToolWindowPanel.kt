@@ -70,8 +70,12 @@ class MyBatisSqlToolWindowPanel(
     }
 
     init {
-        setContent(ScrollPaneFactory.createScrollPane(list))
-        setToolbar(createToolbar())
+        setContent(
+            JPanel(BorderLayout()).apply {
+                add(createToolbar(), BorderLayout.NORTH)
+                add(ScrollPaneFactory.createScrollPane(list), BorderLayout.CENTER)
+            },
+        )
         updateToolbarState()
 
         historyService.addListener(historyListener)
