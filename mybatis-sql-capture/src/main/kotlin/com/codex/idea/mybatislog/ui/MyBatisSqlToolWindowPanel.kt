@@ -8,10 +8,12 @@ import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.ui.SimpleToolWindowPanel
 import com.intellij.openapi.project.Project
+import com.intellij.ui.JBColor
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBTextArea
+import com.intellij.ui.components.JBTextField
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Color
@@ -19,6 +21,7 @@ import java.awt.Component
 import java.awt.Dimension
 import java.awt.Font
 import java.awt.FlowLayout
+import java.awt.Cursor
 import java.awt.datatransfer.StringSelection
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
@@ -36,17 +39,33 @@ import javax.swing.JPopupMenu
 import javax.swing.KeyStroke
 import javax.swing.ListCellRenderer
 import javax.swing.ListSelectionModel
+import javax.swing.event.DocumentEvent
+import javax.swing.event.DocumentListener
 
 class MyBatisSqlToolWindowPanel(
     private val project: Project,
 ) : SimpleToolWindowPanel(false, true), Disposable {
     private val historyService = project.getService(MyBatisSqlHistoryService::class.java)
     private val listModel = DefaultListModel<MyBatisSqlHistoryEntry>()
+    private var allEntries: List<MyBatisSqlHistoryEntry> = emptyList()
     private val list = JBList(listModel).apply {
         cellRenderer = SqlHistoryCellRenderer()
         fixedCellHeight = -1
         selectionMode = ListSelectionModel.MULTIPLE_INTERVAL_SELECTION
         emptyText.text = "Captured MyBatis SQL will appear here."
+    }
+    private val searchField = JBTextField().apply {
+        emptyText.text = "Filter SQL / source / operation / warning"
+        columns = 28
+        document.addDocumentListener(
+            object : DocumentListener {
+                override fun insertUpdate(event: DocumentEvent) = applyFilter()
+
+                override fun removeUpdate(event: DocumentEvent) = applyFilter()
+
+                override fun changedUpdate(event: DocumentEvent) = applyFilter()
+            },
+        )
     }
     private val copyButton = createToolbarButton("Copy SQL") { copySelected() }
     private val clearButton = createToolbarButton("Clear History") { historyService.clear() }
@@ -62,9 +81,8 @@ class MyBatisSqlToolWindowPanel(
     }
 
     private val historyListener: (List<MyBatisSqlHistoryEntry>) -> Unit = { entries ->
-        listModel.removeAllElements()
-        entries.forEach(listModel::addElement)
-        updateToolbarState()
+        allEntries = entries
+        applyFilter()
     }
 
     init {
@@ -91,11 +109,20 @@ class MyBatisSqlToolWindowPanel(
     }
 
     private fun createToolbar(): JComponent {
-        return JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(8), 0)).apply {
-            border = JBUI.Borders.empty(4, 8)
+        val leftPanel = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(8), 0)).apply {
+            isOpaque = false
+            add(searchField)
+        }
+        val rightPanel = JPanel(FlowLayout(FlowLayout.RIGHT, JBUI.scale(6), 0)).apply {
+            isOpaque = false
             add(copyButton)
             add(clearButton)
             add(appearanceButton)
+        }
+        return JPanel(BorderLayout()).apply {
+            border = JBUI.Borders.empty(4, 8)
+            add(leftPanel, BorderLayout.WEST)
+            add(rightPanel, BorderLayout.EAST)
         }
     }
 
@@ -148,7 +175,36 @@ class MyBatisSqlToolWindowPanel(
 
     private fun updateToolbarState() {
         copyButton.isEnabled = list.selectedIndices.isNotEmpty()
-        clearButton.isEnabled = !listModel.isEmpty
+        clearButton.isEnabled = allEntries.isNotEmpty()
+        syncToolbarButtonColors()
+    }
+
+    private fun applyFilter() {
+        val keyword = searchField.text.trim().lowercase()
+        val filteredEntries = if (keyword.isEmpty()) {
+            allEntries
+        } else {
+            allEntries.filter { entry ->
+                entry.sql.lowercase().contains(keyword) ||
+                    entry.source.lowercase().contains(keyword) ||
+                    entry.operation.displayName.lowercase().contains(keyword) ||
+                    entry.warning?.lowercase()?.contains(keyword) == true
+            }
+        }
+        listModel.removeAllElements()
+        filteredEntries.forEach(listModel::addElement)
+        list.emptyText.text = if (keyword.isEmpty()) {
+            "Captured MyBatis SQL will appear here."
+        } else {
+            "No SQL matches the current filter."
+        }
+        updateToolbarState()
+    }
+
+    private fun syncToolbarButtonColors() {
+        copyButton.foreground = if (copyButton.isEnabled) JBColor.foreground() else JBColor.GRAY
+        clearButton.foreground = if (clearButton.isEnabled) JBColor.foreground() else JBColor.GRAY
+        appearanceButton.foreground = JBColor.foreground()
     }
 
     private fun createToolbarButton(text: String, onClick: () -> Unit): JButton {
@@ -159,6 +215,23 @@ class MyBatisSqlToolWindowPanel(
             isBorderPainted = false
             isContentAreaFilled = false
             isOpaque = false
+            cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+            val normalColor = JBColor.foreground()
+            val hoverColor = JBColor(0x2F6BFF, 0x78A6FF)
+            foreground = normalColor
+            addMouseListener(
+                object : MouseAdapter() {
+                    override fun mouseEntered(event: MouseEvent) {
+                        if (isEnabled) {
+                            foreground = hoverColor
+                        }
+                    }
+
+                    override fun mouseExited(event: MouseEvent) {
+                        foreground = if (isEnabled) normalColor else JBColor.GRAY
+                    }
+                },
+            )
             addActionListener { onClick() }
         }
     }
