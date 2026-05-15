@@ -214,13 +214,7 @@ class MyBatisSqlToolWindowPanel(
 
             val root = JPanel(BorderLayout()).apply {
                 background = if (isSelected) list.selectionBackground else list.background
-                border = BorderFactory.createCompoundBorder(
-                    BorderFactory.createCompoundBorder(
-                        BorderFactory.createMatteBorder(0, 4, 1, 0, operationColor),
-                        BorderFactory.createMatteBorder(0, 0, 1, 0, JBUI.CurrentTheme.CustomFrameDecorations.separatorForeground()),
-                    ),
-                    JBUI.Borders.empty(10, 12, 10, 12),
-                )
+                border = JBUI.Borders.empty(10, 16, 10, 16)
                 add(top, BorderLayout.NORTH)
                 add(sqlArea, BorderLayout.CENTER)
                 value.warning?.takeIf { it.isNotBlank() }?.let { warning ->
