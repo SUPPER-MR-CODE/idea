@@ -87,7 +87,7 @@ mybatis-sql-capture/build/distributions/
 
 Latest local build artifact name:
 
-- `mybatis-sql-capture-0.3.0.zip`
+- `mybatis-sql-capture-0.3.1.zip`
 
 ## Marketplace
 

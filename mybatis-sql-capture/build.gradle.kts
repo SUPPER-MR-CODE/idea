@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "io.github.suppermrcode"
-version = "0.3.0"
+version = "0.3.1"
 
 repositories {
     mavenCentral()
@@ -58,10 +58,9 @@ tasks {
         changeNotes.set(
             """
                 <ul>
-                  <li>Expanded compatibility from IntelliJ IDEA 2022.1 through 2025.3.</li>
-                  <li>Added clearer MyBatis SQL panel controls with copy, clear, and appearance actions.</li>
-                  <li>Added right-click copy and <code>Ctrl+C</code> support for selected SQL history entries.</li>
-                  <li>Added configurable SQL font size alongside CRUD color customization.</li>
+                  <li>Polished the MyBatis SQL panel toolbar layout to avoid icon and label overlap.</li>
+                  <li>Added SQL bold font configuration in appearance settings.</li>
+                  <li>Fixed SQL item layout for larger fonts so content is fully visible with better spacing.</li>
                 </ul>
             """.trimIndent(),
         )
