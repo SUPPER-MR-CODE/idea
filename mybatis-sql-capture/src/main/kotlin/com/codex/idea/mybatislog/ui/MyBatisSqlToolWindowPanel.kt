@@ -38,7 +38,6 @@ import javax.swing.JPopupMenu
 import javax.swing.KeyStroke
 import javax.swing.ListCellRenderer
 import javax.swing.ListSelectionModel
-import javax.swing.SwingConstants
 
 class MyBatisSqlToolWindowPanel(
     private val project: Project,
@@ -153,11 +152,8 @@ class MyBatisSqlToolWindowPanel(
     private fun createToolbarButton(text: String, icon: Icon, onClick: () -> Unit): JButton {
         return JButton(text, icon).apply {
             isFocusable = false
-            margin = JBUI.insets(6, 10)
-            iconTextGap = JBUI.scale(6)
-            horizontalAlignment = SwingConstants.LEFT
-            horizontalTextPosition = SwingConstants.RIGHT
-            verticalTextPosition = SwingConstants.CENTER
+            margin = JBUI.insets(5, 8)
+            iconTextGap = JBUI.scale(3)
             addActionListener { onClick() }
         }
     }
