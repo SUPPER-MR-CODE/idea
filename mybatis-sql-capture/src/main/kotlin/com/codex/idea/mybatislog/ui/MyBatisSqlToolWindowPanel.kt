@@ -17,6 +17,7 @@ import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
+import java.awt.Dimension
 import java.awt.Font
 import java.awt.FlowLayout
 import java.awt.datatransfer.StringSelection
@@ -81,6 +82,8 @@ class MyBatisSqlToolWindowPanel(
         val busConnection = project.messageBus.connect(this)
         busConnection.subscribe(MyBatisSqlColorSettingsService.TOPIC, object : MyBatisSqlColorSettingsService.Listener {
             override fun settingsChanged() {
+                list.cellRenderer = SqlHistoryCellRenderer()
+                list.revalidate()
                 list.repaint()
             }
         })
@@ -203,8 +206,11 @@ class MyBatisSqlToolWindowPanel(
                 font = Font(Font.MONOSPACED, sqlFontStyle, sqlFontSize)
                 foreground = operationColor
                 background = if (isSelected) list.selectionBackground else list.background
-                border = JBUI.Borders.emptyTop(6)
+                border = JBUI.Borders.empty(8, 0, 6, 0)
             }
+            val sqlAreaWidth = (list.width - JBUI.scale(56)).coerceAtLeast(JBUI.scale(220))
+            sqlArea.setSize(sqlAreaWidth, Short.MAX_VALUE.toInt())
+            sqlArea.preferredSize = Dimension(sqlAreaWidth, sqlArea.preferredSize.height)
 
             val root = JPanel(BorderLayout()).apply {
                 background = if (isSelected) list.selectionBackground else list.background
@@ -213,7 +219,7 @@ class MyBatisSqlToolWindowPanel(
                         BorderFactory.createMatteBorder(0, 4, 1, 0, operationColor),
                         BorderFactory.createMatteBorder(0, 0, 1, 0, JBUI.CurrentTheme.CustomFrameDecorations.separatorForeground()),
                     ),
-                    JBUI.Borders.empty(8, 10),
+                    JBUI.Borders.empty(10, 12, 10, 12),
                 )
                 add(top, BorderLayout.NORTH)
                 add(sqlArea, BorderLayout.CENTER)
@@ -221,7 +227,7 @@ class MyBatisSqlToolWindowPanel(
                     add(
                         JBLabel(warning).apply {
                             foreground = Color(0x996600)
-                            border = JBUI.Borders.emptyTop(6)
+                            border = JBUI.Borders.empty(8, 0, 2, 0)
                         },
                         BorderLayout.SOUTH,
                     )
